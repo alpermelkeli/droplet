@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Build artifacts
+.build/
+droplet.app/
+droplet-installer.dmg
+droplet_rw.dmg
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+
+# Icon build artifacts
+Resources/AppIcon.iconset/
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved

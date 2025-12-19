@@ -1,0 +1,155 @@
+import Foundation
+import Combine
+import SwiftUI
+
+/// Main view model handling all Pomodoro timer logic
+class PomodoroViewModel: ObservableObject {
+    @Published var currentMode: TimerMode = .work
+    @Published var status: TimerStatus = .idle
+    @Published var remainingSeconds: Int = 25 * 60
+    @Published var completedWorkflows: Int = 0
+    
+    private var timer: AnyCancellable?
+    private var settings = SettingsManager.shared
+    private var notifications = NotificationManager.shared
+    
+    init() {
+        resetToCurrentMode()
+    }
+    
+    // MARK: - Computed Properties
+    
+    var formattedTime: String {
+        let minutes = remainingSeconds / 60
+        let seconds = remainingSeconds % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+    
+    var currentAccentColor: Color {
+        switch currentMode {
+        case .work:
+            return settings.selectedTheme.workAccent
+        case .shortBreak, .longBreak:
+            return settings.selectedTheme.breakAccent
+        }
+    }
+    
+    var progressRatio: Double {
+        let total = totalSecondsForCurrentMode
+        guard total > 0 else { return 0 }
+        return Double(totalSecondsForCurrentMode - remainingSeconds) / Double(total)
+    }
+    
+    private var totalSecondsForCurrentMode: Int {
+        switch currentMode {
+        case .work:
+            return settings.workDuration * 60
+        case .shortBreak:
+            return settings.shortBreakDuration * 60
+        case .longBreak:
+            return settings.longBreakDuration * 60
+        }
+    }
+    
+    // MARK: - Public Actions
+    
+    /// Single click: Start/Pause
+    func toggleStartPause() {
+        switch status {
+        case .idle, .paused, .pulsing:
+            startTimer()
+        case .running:
+            pauseTimer()
+        }
+    }
+    
+    /// Double click: Reset current mode
+    func resetCurrentMode() {
+        stopTimer()
+        resetToCurrentMode()
+        status = .idle
+    }
+    
+    // MARK: - Timer Control
+    
+    private func startTimer() {
+        status = .running
+        timer = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.tick()
+            }
+    }
+    
+    private func pauseTimer() {
+        status = .paused
+        timer?.cancel()
+        timer = nil
+    }
+    
+    private func stopTimer() {
+        timer?.cancel()
+        timer = nil
+    }
+    
+    private func tick() {
+        guard remainingSeconds > 0 else { return }
+        
+        remainingSeconds -= 1
+        
+        if remainingSeconds == 0 {
+            handleSessionComplete()
+        }
+    }
+    
+    private func handleSessionComplete() {
+        stopTimer()
+        sendNotification()
+        
+        if settings.autoStartNextSession {
+            switchToNextMode()
+            startTimer()
+        } else {
+            status = .pulsing
+        }
+    }
+    
+    private func sendNotification() {
+        switch currentMode {
+        case .work:
+            notifications.sendWorkEndNotification()
+        case .shortBreak:
+            notifications.sendBreakEndNotification()
+        case .longBreak:
+            notifications.sendLongBreakEndNotification()
+        }
+    }
+    
+    private func switchToNextMode() {
+        switch currentMode {
+        case .work:
+            completedWorkflows += 1
+            if completedWorkflows >= settings.workflowCount {
+                currentMode = .longBreak
+                completedWorkflows = 0
+            } else {
+                currentMode = .shortBreak
+            }
+        case .shortBreak, .longBreak:
+            currentMode = .work
+        }
+        resetToCurrentMode()
+    }
+    
+    private func resetToCurrentMode() {
+        remainingSeconds = totalSecondsForCurrentMode
+    }
+    
+    /// Called when user clicks during pulsing state to continue
+    func continueToNextPhase() {
+        if status == .pulsing {
+            switchToNextMode()
+            startTimer()
+        }
+    }
+}
