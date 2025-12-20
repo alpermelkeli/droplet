@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Build script for droplet macOS app
-# Creates a proper .app bundle with Sparkle for auto-updates
+# Creates a proper .app bundle
 
 set -e
 
@@ -47,11 +47,9 @@ fi
 # Create a simple PkgInfo
 echo "APPL????" > "${CONTENTS_DIR}/PkgInfo"
 
-# Sign the app with entitlements for MediaRemote access
-if [ -f "Resources/droplet.entitlements" ]; then
-    echo "🔐 Signing app with entitlements..."
-    codesign --force --deep --sign - --entitlements "Resources/droplet.entitlements" "${APP_BUNDLE}"
-fi
+# Sign the app (ad-hoc) to avoid "damaged app" errors on some systems
+echo "🔐 Signing app..."
+codesign --force --deep --sign - "${APP_BUNDLE}"
 
 echo "✅ App bundle created: ${APP_BUNDLE}"
 echo ""

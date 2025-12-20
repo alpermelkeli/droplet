@@ -66,21 +66,6 @@ jobs:
           cp "Resources/AppIcon.icns" "${RESOURCES_DIR}/"
         fi
         
-        # Copy Sparkle framework
-        echo "Looking for Sparkle framework..."
-        SPARKLE_PATH=$(find .build -name "Sparkle.framework" -type d 2>/dev/null | head -1)
-        if [ -n "$SPARKLE_PATH" ]; then
-          echo "Copying Sparkle from: $SPARKLE_PATH"
-          cp -R "$SPARKLE_PATH" "${FRAMEWORKS_DIR}/"
-        else
-          echo "⚠️  Sparkle framework not found"
-        fi
-        
-        # Create PkgInfo
-        echo -n "APPL????" > "${CONTENTS_DIR}/PkgInfo"
-        
-        echo "✅ App bundle created: ${APP_BUNDLE}"
-    
     - name: Create DMG
       run: |
         set -e
@@ -125,70 +110,10 @@ jobs:
           
           > **Note**: On first launch, right-click the app and select "Open" to bypass Gatekeeper.
           
-          ### Features
-          - 🍅 Pomodoro timer with customizable durations
-          - � **Music Integration** - Control Spotify & Apple Music + Now Playing info
-          - �🎨 **8 Beautiful Themes** - Dark, Light, Beige, Beige+, Navy, Frog, Blossom, Poppy
-          - 🎧 **Ambient Focus Sounds** - Forest, Train, Library, Cricket
-          - ✨ **Visual Polish** - Glow effects & smooth animations
-          - 🔔 Native notifications
-          - 🚀 Auto-updates via Sparkle
+          ### What's New
+          - 🎵 **Music Integration**: Control Spotify & Apple Music directly from the timer (Play/Pause, Next, Previous).
+          - 🎨 **New Themes**: added **Beige+** and **Navy**, and renamed Cherry Blossom to **Blossom**.
+          - 🐛 **Bug Fixes**: Improved stability and resolved "Operation not permitted" issues.
         files: droplet-installer.dmg
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Update appcast.xml
-      run: |
-        VERSION=${{ steps.version.outputs.VERSION }}
-        DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
-        DMG_SIZE=$(stat -f%z droplet-installer.dmg)
-        REPO="${{ github.repository }}"
-        
-        cat > appcast.xml << EOF
-        <?xml version="1.0" encoding="utf-8"?>
-        <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
-            <channel>
-                <title>droplet</title>
-                <link>https://github.com/${REPO}</link>
-                <description>Minimalist Pomodoro Timer for macOS</description>
-                <language>en</language>
-                <item>
-                    <title>Version ${VERSION}</title>
-                    <pubDate>${DATE}</pubDate>
-                    <sparkle:version>${VERSION//./}</sparkle:version>
-                    <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
-                    <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
-                    <description><![CDATA[
-                        <h2>droplet ${VERSION}</h2>
-                        <p>See release notes for details.</p>
-                    ]]></description>
-                    <enclosure 
-                        url="https://github.com/${REPO}/releases/download/v${VERSION}/droplet-installer.dmg"
-                        length="${DMG_SIZE}"
-                        type="application/octet-stream"/>
-                </item>
-            </channel>
-        </rss>
-        EOF
-        
-        echo "✅ appcast.xml generated:"
-        cat appcast.xml
-    
-    - name: Commit appcast.xml
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        
-        # Fetch and checkout main branch (we're currently on a detached HEAD from the tag)
-        git fetch origin main:main
-        git checkout main
-        
-        # Add and commit appcast.xml
-        git add appcast.xml
-        if git diff --cached --quiet; then
-          echo "No changes to appcast.xml"
-        else
-          git commit -m "Update appcast.xml for v${{ steps.version.outputs.VERSION }}"
-          git push origin main
-          echo "✅ appcast.xml committed and pushed"
-        fi
