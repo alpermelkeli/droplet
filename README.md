@@ -1,8 +1,6 @@
-# droplet 
+![droplet header](Resources/header.png)
 
-A minimalist Pomodoro timer for macOS, built with Swift and SwiftUI.
-
-> **Built with AI** - This application was developed using AI-assisted coding.
+Built with Swift and SwiftUI.
 
 ![macOS 13+](https://img.shields.io/badge/macOS-13%2B-blue)
 ![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange)
