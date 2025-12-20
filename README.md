@@ -10,19 +10,22 @@ A minimalist Pomodoro timer for macOS, built with Swift and SwiftUI.
 
 ## Features
 
--  **Pomodoro Timer** - Work → Break → Long Break cycle
--  **6 Beautiful Themes** - Dark, Light, Beige, Frog, Cherry Blossom, Poppy
--  **Ambient Sounds** - Forest, Train, Library, Cricket (seamless looping)
--  **Glow Effects** - Optional glowing timer and progress bar
--  **Notifications** - Native macOS alerts when sessions end
--  **Menu Bar Only** - Lives in your menu bar, no dock icon
--  **Launch at Login** - Start automatically with your Mac
--  **Customizable** - Adjust durations, workflows, font size
+- 🍅 **Pomodoro Timer** - Work → Break → Long Break cycle
+- 🎨 **6 Beautiful Themes** - Dark, Light, Beige, Frog, Cherry Blossom, Poppy
+- 🎧 **Ambient Sounds** - Forest, Train, Library, Cricket (seamless looping)
+- ✨ **Glow Effects** - Optional glowing timer and progress bar
+- 🔔 **Notifications** - Native macOS alerts when sessions end
+- 📌 **Menu Bar Only** - Lives in your menu bar, no dock icon
+- 🚀 **Launch at Login** - Start automatically with your Mac
+- ⚙️ **Customizable** - Adjust durations, workflows, font size
 
 ## Installation
 
-### Option 1: DMG Installer
-1. Download `droplet-installer.dmg`
+### Download Latest Release
+
+**[📥 Download droplet](https://github.com/fikretkdincer/droplet/releases/latest)**
+
+1. Download `droplet-installer.dmg` from the latest release
 2. Open the DMG
 3. Drag `droplet` to `Applications`
 4. Launch from Applications or Spotlight
@@ -37,7 +40,7 @@ A minimalist Pomodoro timer for macOS, built with Swift and SwiftUI.
 >
 > This is a one-time approval; the app will open normally after that.
 
-### Option 2: Build from Source
+### Build from Source
 ```bash
 git clone https://github.com/fikretkdincer/droplet.git
 cd droplet
@@ -77,33 +80,6 @@ Requirements:
 
 # Create DMG installer
 ./create-dmg.sh
-```
-
-## Project Structure
-
-```
-droplet/
-├── Sources/
-│   ├── DropletApp.swift        # Main app & menu bar
-│   ├── Models/
-│   │   ├── Theme.swift         # Color themes
-│   │   └── TimerState.swift    # Timer states
-│   ├── ViewModels/
-│   │   └── PomodoroViewModel.swift
-│   ├── Views/
-│   │   └── TimerView.swift     # UI & settings menu
-│   └── Utilities/
-│       ├── NotificationManager.swift
-│       ├── SettingsManager.swift
-│       ├── SoundManager.swift
-│       └── LaunchAtLoginManager.swift
-├── Resources/
-│   ├── Info.plist
-│   ├── AppIcon.icns
-│   └── Sounds/                 # Ambient audio files
-├── Package.swift
-├── build.sh
-└── create-dmg.sh
 ```
 
 ## License
