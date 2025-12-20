@@ -73,7 +73,6 @@ jobs:
         echo "✅ App bundle created: ${APP_BUNDLE}"
         
     - name: Create DMG
-    - name: Create DMG
       run: |
         set -e
         
