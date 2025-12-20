@@ -30,14 +30,7 @@
     <string>alert</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
-    
-    <!-- Sparkle Configuration -->
-    <key>SUFeedURL</key>
-    <string>https://raw.githubusercontent.com/fikretkdincer/droplet/main/appcast.xml</string>
-    <key>SUPublicEDKey</key>
-    <string>ZFvHyzhMij2+jZnlpQegw92ZZ7v5RVZc7RAFintb1Ec=</string>
-    <key>SUEnableAutomaticChecks</key>
-    <true/>
 </dict>
 </plist>
+
 

@@ -92,11 +92,11 @@ struct TimerView: View {
                 viewModel.toggleStartPause()
             }
         }
-        .contextMenu {
-            SettingsMenuContent(viewModel: viewModel, settings: settings, onQuit: {
-                NSApplication.shared.terminate(nil)
-            })
-        }
+        .overlay(
+            // Native right-click handler using NSViewRepresentable
+            RightClickHandler(viewModel: viewModel, settings: settings)
+                .allowsHitTesting(true)
+        )
         .onAppear {
             startPulseAnimationIfNeeded()
         }
@@ -126,8 +126,9 @@ struct TimerView: View {
 struct SettingsMenuContent: View {
     @ObservedObject var viewModel: PomodoroViewModel
     @ObservedObject var settings: SettingsManager
-    @ObservedObject var soundManager = SoundManager.shared
-    @ObservedObject var launchManager = LaunchAtLoginManager.shared
+    // Access singletons directly instead of @ObservedObject to prevent refresh issues
+    private var soundManager: SoundManager { SoundManager.shared }
+    private var launchManager: LaunchAtLoginManager { LaunchAtLoginManager.shared }
     var onQuit: () -> Void
     
     var body: some View {
@@ -262,4 +263,51 @@ struct SettingsMenuContent: View {
         }
     }
 }
+
+/// Native right-click handler using NSViewRepresentable
+struct RightClickHandler: NSViewRepresentable {
+    let viewModel: PomodoroViewModel
+    let settings: SettingsManager
+    
+    func makeNSView(context: Context) -> RightClickNSView {
+        let view = RightClickNSView()
+        view.viewModel = viewModel
+        view.settings = settings
+        return view
+    }
+    
+    func updateNSView(_ nsView: RightClickNSView, context: Context) {
+        nsView.viewModel = viewModel
+        nsView.settings = settings
+    }
+}
+
+/// Custom NSView that captures only right-click events
+class RightClickNSView: NSView {
+    var viewModel: PomodoroViewModel?
+    var settings: SettingsManager?
+    private var settingsMenu: SettingsMenu?
+    
+    override func rightMouseDown(with event: NSEvent) {
+        guard let viewModel = viewModel, let settings = settings else { return }
+        
+        settingsMenu = SettingsMenu(viewModel: viewModel, settings: settings)
+        let menu = settingsMenu!.createMenu()
+        
+        // Show menu at mouse location
+        NSMenu.popUpContextMenu(menu, with: event, for: self)
+    }
+    
+    // Pass through all other events to the superview
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        // Check if this is from a right-click - if not, return nil to pass through
+        let currentEvent = NSApp.currentEvent
+        if currentEvent?.type == .rightMouseDown {
+            return super.hitTest(point)
+        }
+        // For all other events (left click, etc), pass through to SwiftUI
+        return nil
+    }
+}
+
 

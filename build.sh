@@ -44,13 +44,6 @@ if [ -f "Resources/AppIcon.icns" ]; then
     cp "Resources/AppIcon.icns" "${RESOURCES_DIR}/"
 fi
 
-# Copy Sparkle framework
-SPARKLE_PATH=$(find .build -name "Sparkle.framework" -type d 2>/dev/null | head -1)
-if [ -n "$SPARKLE_PATH" ]; then
-    echo "✨ Adding Sparkle framework..."
-    cp -R "$SPARKLE_PATH" "${FRAMEWORKS_DIR}/"
-fi
-
 # Create a simple PkgInfo
 echo "APPL????" > "${CONTENTS_DIR}/PkgInfo"
 

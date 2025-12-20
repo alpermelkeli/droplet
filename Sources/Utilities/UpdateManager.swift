@@ -1,26 +1,22 @@
 import Foundation
 import AppKit
-import Sparkle
 
-/// Manages auto-updates using Sparkle framework with EdDSA signing
+/// Opens GitHub releases page for update checks (Sparkle requires signed DMG)
 class UpdateManager: NSObject, ObservableObject {
     static let shared = UpdateManager()
     
-    private var updaterController: SPUStandardUpdaterController!
+    private let releasesURL = "https://github.com/fikretkdincer/droplet/releases/latest"
     
     override init() {
         super.init()
-        // Initialize Sparkle updater (uses EdDSA signing, not Apple code signing)
-        updaterController = SPUStandardUpdaterController(
-            startingUpdater: true,
-            updaterDelegate: nil,
-            userDriverDelegate: nil
-        )
     }
     
-    /// Manually check for updates
+    /// Check for updates by opening GitHub releases page
     func checkForUpdates() {
-        updaterController.checkForUpdates(nil)
+        if let url = URL(string: releasesURL) {
+            NSWorkspace.shared.open(url)
+        }
     }
 }
+
 
