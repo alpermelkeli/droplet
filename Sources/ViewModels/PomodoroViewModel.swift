@@ -158,4 +158,12 @@ class PomodoroViewModel: ObservableObject {
             startTimer()
         }
     }
+    
+    /// End current session and move to next phase (increment workflow if work ended)
+    func endCurrentSession() {
+        stopTimer()
+        sendNotification()  // Notify user about session end
+        switchToNextMode()
+        status = .idle
+    }
 }

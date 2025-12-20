@@ -32,31 +32,45 @@ struct TimerView: View {
                         radius: settings.enableGlow ? 8 : 0
                     )
                 
-                // Progress bar
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(settings.selectedTheme.textColor.opacity(0.2))
-                            .frame(height: 4)
-                        
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(viewModel.currentAccentColor)
-                            .frame(width: geometry.size.width * viewModel.progressRatio, height: 4)
-                            .animation(.linear(duration: 0.5), value: viewModel.progressRatio)
-                            .shadow(
-                                color: settings.enableGlow ? viewModel.currentAccentColor.opacity(0.8) : .clear,
-                                radius: settings.enableGlow ? 6 : 0
-                            )
+                // Progress bar (conditionally shown)
+                if settings.showProgressBar {
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(settings.selectedTheme.textColor.opacity(0.2))
+                                .frame(height: 4)
+                            
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(viewModel.currentAccentColor)
+                                .frame(width: geometry.size.width * viewModel.progressRatio, height: 4)
+                                .animation(.linear(duration: 0.5), value: viewModel.progressRatio)
+                                .shadow(
+                                    color: settings.enableGlow ? viewModel.currentAccentColor.opacity(0.8) : .clear,
+                                    radius: settings.enableGlow ? 6 : 0
+                                )
+                        }
                     }
+                    .frame(height: 4)
+                    .padding(.horizontal, 20)
                 }
-                .frame(height: 4)
-                .padding(.horizontal, 20)
                 
-                // Workflow counter (subtle)
+                // Workflow counter - shows current progress
+                // Work: current workflow highlighted (completedWorkflows + 1)
+                // Break: completed workflows highlighted
+                // Long break: all highlighted (celebration!)
                 HStack(spacing: 4) {
                     ForEach(0..<settings.workflowCount, id: \.self) { index in
+                        let isHighlighted: Bool = {
+                            if viewModel.currentMode == .longBreak {
+                                return true  // All lit during long break
+                            } else if viewModel.currentMode == .work {
+                                return index <= viewModel.completedWorkflows  // Current + completed
+                            } else {
+                                return index < viewModel.completedWorkflows  // Just completed
+                            }
+                        }()
                         Circle()
-                            .fill(index < viewModel.completedWorkflows ? 
+                            .fill(isHighlighted ? 
                                   viewModel.currentAccentColor : 
                                   settings.selectedTheme.textColor.opacity(0.3))
                             .frame(width: 6, height: 6)
@@ -79,7 +93,7 @@ struct TimerView: View {
             }
         }
         .contextMenu {
-            SettingsMenuContent(settings: settings, onQuit: {
+            SettingsMenuContent(viewModel: viewModel, settings: settings, onQuit: {
                 NSApplication.shared.terminate(nil)
             })
         }
@@ -110,6 +124,7 @@ struct TimerView: View {
 
 /// Settings menu content for context menu
 struct SettingsMenuContent: View {
+    @ObservedObject var viewModel: PomodoroViewModel
     @ObservedObject var settings: SettingsManager
     @ObservedObject var soundManager = SoundManager.shared
     @ObservedObject var launchManager = LaunchAtLoginManager.shared
@@ -189,6 +204,11 @@ struct SettingsMenuContent: View {
                 }
             }
             
+            // End current session
+            Button("End Session") {
+                viewModel.endCurrentSession()
+            }
+            
             Divider()
             
             // Toggles
@@ -226,6 +246,7 @@ struct SettingsMenuContent: View {
                 Divider()
                 
                 Toggle("Enable Glow", isOn: $settings.enableGlow)
+                Toggle("Show Progress Bar", isOn: $settings.showProgressBar)
             }
             
             Divider()

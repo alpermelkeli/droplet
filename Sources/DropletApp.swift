@@ -24,6 +24,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     let settings = SettingsManager.shared
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Initialize notification manager early to set delegate
+        _ = NotificationManager.shared
+        
         // Hide dock icon
         NSApp.setActivationPolicy(.accessory)
         

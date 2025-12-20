@@ -3,22 +3,46 @@ import UserNotifications
 import AppKit
 
 /// Handles macOS system notifications and sounds for timer events
-class NotificationManager {
+class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
     static let shared = NotificationManager()
     
-    private init() {
+    private override init() {
+        super.init()
+        // Set delegate to allow notifications when app is in foreground
+        UNUserNotificationCenter.current().delegate = self
         requestPermission()
     }
     
     func requestPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if granted {
-                print("✅ Notification permission granted")
-            }
-            if let error = error {
-                print("❌ Notification permission error: \(error)")
+            DispatchQueue.main.async {
+                if granted {
+                    print("✅ Notification permission granted")
+                } else {
+                    print("⚠️ Notification permission denied")
+                }
+                if let error = error {
+                    print("❌ Notification permission error: \(error)")
+                }
             }
         }
+    }
+    
+    // MARK: - UNUserNotificationCenterDelegate
+    
+    // This is called when a notification is about to be presented while app is in foreground
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                               willPresent notification: UNNotification,
+                               withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        // Show banner, play sound, and update badge even when app is in foreground
+        completionHandler([.banner, .sound, .badge])
+    }
+    
+    // This is called when user interacts with a notification
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                               didReceive response: UNNotificationResponse,
+                               withCompletionHandler completionHandler: @escaping () -> Void) {
+        completionHandler()
     }
     
     /// Play system alert sound
@@ -48,13 +72,27 @@ class NotificationManager {
             trigger: nil // Deliver immediately
         )
         
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("❌ Failed to send notification: \(error)")
-            } else {
-                print("✅ Notification sent: \(title)")
+        UNUserNotificationCenter.current().add(request) { [weak self] error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("❌ Failed to send notification: \(error)")
+                    // Fallback: show alert dialog
+                    self?.showAlertFallback(title: title, body: body)
+                } else {
+                    print("✅ Notification sent: \(title)")
+                }
             }
         }
+    }
+    
+    /// Fallback alert dialog when notifications fail
+    private func showAlertFallback(title: String, body: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = body
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
     }
     
     func sendWorkEndNotification() {
@@ -78,3 +116,4 @@ class NotificationManager {
         )
     }
 }
+

@@ -16,6 +16,7 @@ class SettingsManager: ObservableObject {
     // Visual settings
     @AppStorage("timerFontSize") var timerFontSize: Double = 42
     @AppStorage("enableGlow") var enableGlow: Bool = false
+    @AppStorage("showProgressBar") var showProgressBar: Bool = true
     
     var selectedTheme: Theme {
         get { Theme(rawValue: selectedThemeRaw) ?? .dark }

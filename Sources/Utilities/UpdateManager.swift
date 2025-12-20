@@ -2,7 +2,7 @@ import Foundation
 import AppKit
 import Sparkle
 
-/// Manages auto-updates using Sparkle framework
+/// Manages auto-updates using Sparkle framework with EdDSA signing
 class UpdateManager: NSObject, ObservableObject {
     static let shared = UpdateManager()
     
@@ -10,7 +10,7 @@ class UpdateManager: NSObject, ObservableObject {
     
     override init() {
         super.init()
-        // Initialize Sparkle updater
+        // Initialize Sparkle updater (uses EdDSA signing, not Apple code signing)
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true,
             updaterDelegate: nil,
@@ -18,18 +18,9 @@ class UpdateManager: NSObject, ObservableObject {
         )
     }
     
-    /// Get the updater for SwiftUI views
-    var updater: SPUUpdater {
-        return updaterController.updater
-    }
-    
     /// Manually check for updates
     func checkForUpdates() {
         updaterController.checkForUpdates(nil)
     }
-    
-    /// Check for updates silently in background
-    func checkForUpdatesInBackground() {
-        updaterController.updater.checkForUpdatesInBackground()
-    }
 }
+
