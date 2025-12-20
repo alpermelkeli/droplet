@@ -1,10 +1,11 @@
 # macOS
 .DS_Store
 
-# Build artifacts
+# Build artifacts (DMG is built by GitHub Actions for releases)
 .build/
 droplet.app/
 droplet_rw.dmg
+droplet-installer.dmg
 
 # Xcode
 *.xcodeproj/

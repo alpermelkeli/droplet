@@ -230,6 +230,10 @@ struct SettingsMenuContent: View {
             
             Divider()
             
+            Button("Check for Updates") {
+                UpdateManager.shared.checkForUpdates()
+            }
+            
             Button("Quit droplet") {
                 onQuit()
             }

@@ -1,7 +1,8 @@
 import Foundation
 import UserNotifications
+import AppKit
 
-/// Handles macOS system notifications for timer events
+/// Handles macOS system notifications and sounds for timer events
 class NotificationManager {
     static let shared = NotificationManager()
     
@@ -11,17 +12,35 @@ class NotificationManager {
     
     func requestPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if granted {
+                print("✅ Notification permission granted")
+            }
             if let error = error {
-                print("Notification permission error: \(error)")
+                print("❌ Notification permission error: \(error)")
             }
         }
     }
     
+    /// Play system alert sound
+    func playAlertSound() {
+        // Play the system "Glass" sound (a pleasant beep)
+        NSSound.beep()
+        
+        // Alternative: play a specific system sound
+        if let sound = NSSound(named: "Glass") {
+            sound.play()
+        }
+    }
+    
     func sendNotification(title: String, body: String) {
+        // Play sound immediately
+        playAlertSound()
+        
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
-        content.sound = .default
+        content.sound = UNNotificationSound.default
+        content.interruptionLevel = .timeSensitive
         
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
@@ -31,28 +50,30 @@ class NotificationManager {
         
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("Failed to send notification: \(error)")
+                print("❌ Failed to send notification: \(error)")
+            } else {
+                print("✅ Notification sent: \(title)")
             }
         }
     }
     
     func sendWorkEndNotification() {
         sendNotification(
-            title: "Work Session Complete! 💧",
+            title: "Work Session Complete!",
             body: "Time for a break. You've earned it!"
         )
     }
     
     func sendBreakEndNotification() {
         sendNotification(
-            title: "Break Over! 🌿",
+            title: "Break Over!",
             body: "Ready to focus again?"
         )
     }
     
     func sendLongBreakEndNotification() {
         sendNotification(
-            title: "Long Break Over! 🌊",
+            title: "Long Break Over!",
             body: "Great job! Ready for another workflow?"
         )
     }

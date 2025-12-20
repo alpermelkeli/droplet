@@ -104,12 +104,18 @@ class PomodoroViewModel: ObservableObject {
     
     private func handleSessionComplete() {
         stopTimer()
+        status = .idle
         sendNotification()
         
         if settings.autoStartNextSession {
+            // Switch to next mode and auto-start
             switchToNextMode()
-            startTimer()
+            // Small delay to let notification register, then start
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.startTimer()
+            }
         } else {
+            // Wait for user to click
             status = .pulsing
         }
     }

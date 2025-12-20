@@ -1,0 +1,102 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.0.1, v2.0.0
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Swift
+      uses: swift-actions/setup-swift@v2
+      with:
+        swift-version: '5.9'
+    
+    - name: Get version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+    
+    - name: Update version in Info.plist
+      run: |
+        sed -i '' "s/<string>1.0.0<\/string>/<string>${{ steps.version.outputs.VERSION }}<\/string>/" Resources/Info.plist
+    
+    - name: Build app
+      run: |
+        chmod +x build.sh
+        ./build.sh
+    
+    - name: Create DMG
+      run: |
+        chmod +x create-dmg.sh
+        ./create-dmg.sh
+    
+    - name: Update appcast.xml
+      run: |
+        VERSION=${{ steps.version.outputs.VERSION }}
+        DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
+        DMG_SIZE=$(stat -f%z droplet-installer.dmg)
+        
+        cat > appcast.xml << EOF
+        <?xml version="1.0" encoding="utf-8"?>
+        <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+            <channel>
+                <title>droplet</title>
+                <link>https://github.com/${{ github.repository }}</link>
+                <description>droplet - Minimalist Pomodoro Timer for macOS</description>
+                <language>en</language>
+                <item>
+                    <title>Version ${VERSION}</title>
+                    <pubDate>${DATE}</pubDate>
+                    <sparkle:version>${VERSION//./}</sparkle:version>
+                    <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
+                    <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+                    <description><![CDATA[
+                        <h2>droplet ${VERSION}</h2>
+                        <p>See release notes on GitHub for details.</p>
+                    ]]></description>
+                    <enclosure 
+                        url="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/droplet-installer.dmg"
+                        length="${DMG_SIZE}"
+                        type="application/octet-stream"/>
+                </item>
+            </channel>
+        </rss>
+        EOF
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: droplet v${{ steps.version.outputs.VERSION }}
+        body: |
+          ## droplet v${{ steps.version.outputs.VERSION }}
+          
+          ### Installation
+          1. Download `droplet-installer.dmg`
+          2. Open the DMG and drag droplet to Applications
+          3. Launch from Applications or Spotlight
+          
+          > **Note**: On first launch, right-click the app and select "Open" to bypass Gatekeeper.
+        files: |
+          droplet-installer.dmg
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Commit updated appcast.xml
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git fetch origin main
+        git checkout main
+        git add appcast.xml
+        git commit -m "Update appcast.xml for v${{ steps.version.outputs.VERSION }}" || echo "No changes to commit"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
