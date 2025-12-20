@@ -1,36 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
     <channel>
         <title>droplet</title>
         <link>https://github.com/fikretkdincer/droplet</link>
-        <description>droplet - Minimalist Pomodoro Timer for macOS</description>
+        <description>Minimalist Pomodoro Timer for macOS</description>
         <language>en</language>
-        
-        <!-- Latest Release -->
         <item>
             <title>Version 1.0.0</title>
-            <pubDate>Fri, 20 Dec 2024 12:00:00 +0000</pubDate>
-            <sparkle:version>1</sparkle:version>
+            <pubDate>Sat, 20 Dec 2025 13:40:24 +0000</pubDate>
+            <sparkle:version>100</sparkle:version>
             <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
             <description><![CDATA[
-                <h2>droplet 1.0.0 - Initial Release</h2>
-                <ul>
-                    <li>🍅 Pomodoro timer with Work/Break/Long Break cycles</li>
-                    <li>🎨 6 beautiful themes</li>
-                    <li>🎧 4 ambient focus sounds</li>
-                    <li>✨ Glow effects</li>
-                    <li>🔔 Notifications with sound</li>
-                    <li>🚀 Launch at login</li>
-                    <li>📌 Menu bar only mode</li>
-                </ul>
+                <h2>droplet 1.0.0</h2>
+                <p>See release notes for details.</p>
             ]]></description>
             <enclosure 
                 url="https://github.com/fikretkdincer/droplet/releases/download/v1.0.0/droplet-installer.dmg"
-                sparkle:edSignature=""
-                length="35000000"
+                length="38829029"
                 type="application/octet-stream"/>
         </item>
-        
     </channel>
 </rss>
