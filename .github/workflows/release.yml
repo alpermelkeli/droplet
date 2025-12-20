@@ -66,6 +66,12 @@ jobs:
           cp "Resources/AppIcon.icns" "${RESOURCES_DIR}/"
         fi
         
+        # Sign the app (ad-hoc) to avoid "damaged app" errors
+        echo "🔐 Signing app..."
+        codesign --force --deep --sign - "${APP_BUNDLE}"
+        
+        echo "✅ App bundle created: ${APP_BUNDLE}"
+        
     - name: Create DMG
       run: |
         set -e
