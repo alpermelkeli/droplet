@@ -3,20 +3,15 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.0.1, v2.0.0
+      - 'v*.*.*'
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
-    - name: Setup Swift
-      uses: swift-actions/setup-swift@v2
-      with:
-        swift-version: '5.9'
     
     - name: Get version from tag
       id: version
@@ -28,13 +23,47 @@ jobs:
     
     - name: Build app
       run: |
-        chmod +x build.sh
-        ./build.sh
+        swift build -c release
+        
+        # Create app bundle
+        APP_NAME="droplet"
+        APP_BUNDLE="${APP_NAME}.app"
+        CONTENTS_DIR="${APP_BUNDLE}/Contents"
+        MACOS_DIR="${CONTENTS_DIR}/MacOS"
+        RESOURCES_DIR="${CONTENTS_DIR}/Resources"
+        FRAMEWORKS_DIR="${CONTENTS_DIR}/Frameworks"
+        
+        mkdir -p "${MACOS_DIR}" "${RESOURCES_DIR}" "${FRAMEWORKS_DIR}"
+        
+        cp ".build/release/${APP_NAME}" "${MACOS_DIR}/"
+        cp "Resources/Info.plist" "${CONTENTS_DIR}/"
+        cp -r "Resources/Sounds" "${RESOURCES_DIR}/" 2>/dev/null || true
+        cp "Resources/AppIcon.icns" "${RESOURCES_DIR}/" 2>/dev/null || true
+        
+        # Copy Sparkle framework
+        SPARKLE_PATH=$(find .build -name "Sparkle.framework" -type d 2>/dev/null | head -1)
+        if [ -n "$SPARKLE_PATH" ]; then
+          cp -R "$SPARKLE_PATH" "${FRAMEWORKS_DIR}/"
+        fi
+        
+        echo "APPL????" > "${CONTENTS_DIR}/PkgInfo"
+        echo "✅ App bundle created"
     
     - name: Create DMG
       run: |
-        chmod +x create-dmg.sh
-        ./create-dmg.sh
+        # Simple DMG creation without AppleScript (works in CI)
+        mkdir -p dmg_temp
+        cp -r droplet.app dmg_temp/
+        ln -s /Applications dmg_temp/Applications
+        
+        hdiutil create -volname "droplet" \
+          -srcfolder dmg_temp \
+          -ov -format UDZO \
+          -imagekey zlib-level=9 \
+          droplet-installer.dmg
+        
+        rm -rf dmg_temp
+        echo "✅ DMG created"
     
     - name: Update appcast.xml
       run: |
