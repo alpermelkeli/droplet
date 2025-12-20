@@ -141,17 +141,18 @@ jobs:
         VERSION=${{ steps.version.outputs.VERSION }}
         DATE=$(date -u +"%a, %d %b %Y %H:%M:%S %z")
         DMG_SIZE=$(stat -f%z droplet-installer.dmg)
+        REPO="${{ github.repository }}"
         
-        cat > appcast.xml << 'EOF'
+        cat > appcast.xml << EOF
         <?xml version="1.0" encoding="utf-8"?>
         <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
             <channel>
                 <title>droplet</title>
-                <link>https://github.com/${{ github.repository }}</link>
+                <link>https://github.com/${REPO}</link>
                 <description>Minimalist Pomodoro Timer for macOS</description>
                 <language>en</language>
                 <item>
-                    <title>Version ${{ steps.version.outputs.VERSION }}</title>
+                    <title>Version ${VERSION}</title>
                     <pubDate>${DATE}</pubDate>
                     <sparkle:version>${VERSION//./}</sparkle:version>
                     <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
@@ -161,7 +162,7 @@ jobs:
                         <p>See release notes for details.</p>
                     ]]></description>
                     <enclosure 
-                        url="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/droplet-installer.dmg"
+                        url="https://github.com/${REPO}/releases/download/v${VERSION}/droplet-installer.dmg"
                         length="${DMG_SIZE}"
                         type="application/octet-stream"/>
                 </item>
@@ -169,10 +170,7 @@ jobs:
         </rss>
         EOF
         
-        # Fix the placeholders
-        sed -i '' "s/\${{ github.repository }}/${{ github.repository }}/g" appcast.xml
-        sed -i '' "s/\${{ steps.version.outputs.VERSION }}/${{ steps.version.outputs.VERSION }}/g" appcast.xml
-        
+        echo "✅ appcast.xml generated:"
         cat appcast.xml
     
     - name: Commit appcast.xml
