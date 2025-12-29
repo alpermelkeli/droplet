@@ -100,10 +100,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let button = statusItem?.button else { return }
         
         if settings.showMenuBarTimer {
-            // Use fixed width font if possible or mono digit string to prevent jitter
-            button.title = " \(viewModel.formattedTime)"
+            // Use monospaced digits to prevent jitter during countdown
+            let timerText = viewModel.formattedTime
+            
+            // Create attributed string with monospaced digits font
+            let font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .regular)
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: font,
+                .baselineOffset: 0
+            ]
+            let attributedString = NSAttributedString(string: " \(timerText)", attributes: attributes)
+            
+            button.attributedTitle = attributedString
             button.imagePosition = .imageLeft
         } else {
+            button.attributedTitle = NSAttributedString(string: "")
             button.title = ""
         }
     }
@@ -125,9 +136,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let contentView = TimerView(viewModel: viewModel)
         
         // Use custom BorderlessKeyWindow to enable TextField focus
+        // Need .titled for fullscreen support, but we hide the title bar
         window = BorderlessKeyWindow(
             contentRect: NSRect(x: 0, y: 0, width: 160, height: 120),
-            styleMask: [.borderless, .fullSizeContentView, .resizable],
+            styleMask: [.titled, .fullSizeContentView, .resizable],
             backing: .buffered,
             defer: false
         )
@@ -144,20 +156,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window?.isMovableByWindowBackground = true
         window?.titlebarAppearsTransparent = true
         window?.titleVisibility = .hidden
+        window?.collectionBehavior = [.fullScreenPrimary, .managed]
         
-        // Position window near menu bar icon
-        if let button = statusItem?.button {
-            let buttonFrame = button.window?.convertToScreen(button.frame) ?? .zero
-            let windowFrame = window?.frame ?? .zero
-            let x = buttonFrame.midX - windowFrame.width / 2
-            let y = buttonFrame.minY - windowFrame.height - 10
-            window?.setFrameOrigin(NSPoint(x: x, y: y))
-        }
+        // Hide traffic light buttons but keep fullscreen capability
+        window?.standardWindowButton(.closeButton)?.isHidden = true
+        window?.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window?.standardWindowButton(.zoomButton)?.isHidden = true
+        
+        // Position window in center of screen on first launch
+        window?.center()
         
         window?.makeKeyAndOrderFront(nil)
         
         // Set static reference for view navigation
         SettingsManager.mainWindow = window
+    }
+    
+    /// Position window directly below the menu bar icon
+    private func positionWindowUnderMenuBar() {
+        guard let window = window,
+              let button = statusItem?.button,
+              let buttonWindow = button.window else { return }
+        
+        let buttonFrame = buttonWindow.convertToScreen(button.frame)
+        let windowFrame = window.frame
+        
+        // Position: centered under button, just below menu bar (2px gap)
+        let x = buttonFrame.midX - windowFrame.width / 2
+        let y = buttonFrame.minY - windowFrame.height - 2
+        
+        window.setFrameOrigin(NSPoint(x: x, y: y))
     }
     
     private func updateWindowSize(isMini: Bool) {
@@ -260,13 +288,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window?.orderOut(nil)
         } else {
             // Reposition near menu bar icon
-            if let button = statusItem?.button {
-                let buttonFrame = button.window?.convertToScreen(button.frame) ?? .zero
-                let windowFrame = window?.frame ?? .zero
-                let x = buttonFrame.midX - windowFrame.width / 2
-                let y = buttonFrame.minY - windowFrame.height - 10
-                window?.setFrameOrigin(NSPoint(x: x, y: y))
-            }
+            positionWindowUnderMenuBar()
             window?.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
         }

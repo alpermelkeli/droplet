@@ -13,168 +13,220 @@ struct SettingsView: View {
     let workflowOptions = [2, 3, 4, 5]
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Header
-                HStack {
-                    Button(action: { settings.navigateTo(.timer) }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(settings.selectedTheme.textColor.opacity(0.7))
-                    }
-                    .buttonStyle(.plain)
-                    
-                    Spacer()
-                    
-                    Text("Settings")
+        VStack(spacing: 0) {
+            // Fixed Header
+            HStack {
+                Button(action: { settings.navigateTo(.timer) }) {
+                    Image(systemName: "chevron.left")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(settings.selectedTheme.textColor)
-                    
-                    Spacer()
-                    
-                    Color.clear.frame(width: 14, height: 14)
+                        .foregroundColor(settings.selectedTheme.textColor.opacity(0.7))
                 }
+                .buttonStyle(.plain)
                 
-                // Timer Section
-                settingsSection(title: "Timer") {
-                    settingRow(label: "Work") {
-                        Picker("", selection: $settings.workDuration) {
-                            ForEach(workDurationOptions, id: \.self) { min in
-                                Text("\(min) min").tag(min)
-                            }
-                        }
-                        .labelsHidden()
-                        .frame(width: 90)
-                        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                        .cornerRadius(6)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-                    }
-                    
-                    settingRow(label: "Break") {
-                        Picker("", selection: $settings.shortBreakDuration) {
-                            ForEach(breakDurationOptions, id: \.self) { min in
-                                Text("\(min) min").tag(min)
-                            }
-                        }
-                        .labelsHidden()
-                        .frame(width: 90)
-                        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                        .cornerRadius(6)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-                    }
-                    
-                    settingRow(label: "Long Break") {
-                        Picker("", selection: $settings.longBreakDuration) {
-                            ForEach(longBreakDurationOptions, id: \.self) { min in
-                                Text("\(min) min").tag(min)
-                            }
-                        }
-                        .labelsHidden()
-                        .frame(width: 90)
-                        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                        .cornerRadius(6)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-                    }
-                    
-                    settingRow(label: "Workflows") {
-                        Picker("", selection: $settings.workflowCount) {
-                            ForEach(workflowOptions, id: \.self) { count in
-                                Text("\(count)").tag(count)
-                            }
-                        }
-                        .labelsHidden()
-                        .frame(width: 60)
-                        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                        .cornerRadius(6)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-                    }
-                }
+                Spacer()
                 
-                // Appearance Section
-                settingsSection(title: "Appearance") {
-                    settingRow(label: "Theme") {
-                        Picker("", selection: $settings.selectedTheme) {
-                            ForEach(Theme.allCases) { theme in
-                                Text(theme.rawValue).tag(theme)
-                            }
-                        }
-                        .labelsHidden()
-                        .frame(width: 100)
-                        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                        .cornerRadius(6)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-                    }
-                    
-                    settingRow(label: "Font Size") {
-                        HStack(spacing: 4) {
-                            TextField("", text: $fontSizeText)
-                                .textFieldStyle(.plain)
-                                .font(.system(size: 12))
-                                .foregroundColor(settings.selectedTheme.textColor)
-                                .frame(width: 40)
-                                .multilineTextAlignment(.center)
-                                .padding(4)
-                                .background(settings.selectedTheme.textColor.opacity(0.1))
-                                .cornerRadius(4)
-                                .onAppear {
-                                    fontSizeText = String(Int(settings.timerFontSize))
-                                }
-                                .onChange(of: fontSizeText) { newValue in
-                                    if let size = Int(newValue), size >= 16, size <= 80 {
-                                        settings.timerFontSize = Double(size)
-                                    }
-                                }
-                            Text("pt")
-                                .font(.system(size: 10))
-                                .foregroundColor(settings.selectedTheme.textColor.opacity(0.6))
-                        }
-                    }
-                    
-                    toggleRow(label: "Show Progress Bar", isOn: $settings.showProgressBar)
-                    toggleRow(label: "Timer Controls", isOn: $settings.showTimerControls)
-                    toggleRow(label: "Menu Bar Timer", isOn: $settings.showMenuBarTimer)
-                    toggleRow(label: "Enable Glow", isOn: $settings.enableGlow)
-                }
+                Text("Settings")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(settings.selectedTheme.textColor)
                 
-                // Music Section
-                settingsSection(title: "Music") {
-                    toggleRow(label: "Music Controls", isOn: $settings.showMusicControls)
-                    
-                    settingRow(label: "App") {
-                        Picker("", selection: $settings.musicApp) {
-                            Text("Spotify").tag("Spotify")
-                            Text("Apple Music").tag("Apple Music")
-                        }
-                        .labelsHidden()
-                        .frame(width: 110)
-                        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-                        .cornerRadius(6)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
-                    }
-                    
-                }
+                Spacer()
                 
-                // Sounds Section
-                settingsSection(title: "Sounds") {
-                    toggleRow(label: "Pause Sound on Timer Pause", isOn: $settings.pauseSoundsOnTimerPause)
-                }
-                
-                // Behavior Section
-                settingsSection(title: "Behavior") {
-                    toggleRow(label: "Auto-Start Sessions", isOn: $settings.autoStartNextSession)
-                    toggleRow(label: "Always on Top", isOn: $settings.alwaysOnTop)
-                    
-                    settingRow(label: "Launch at Login") {
-                        Toggle("", isOn: Binding(
-                            get: { LaunchAtLoginManager.shared.isEnabled },
-                            set: { LaunchAtLoginManager.shared.setEnabled($0) }
-                        ))
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                    }
-                }
+                Color.clear.frame(width: 14, height: 14)
             }
-            .padding(12)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(settings.selectedTheme.backgroundColor)
+            
+            // Scrollable Content
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Timer Section
+                    settingsSection(title: "Timer") {
+                        settingRow(label: "Work") {
+                            Picker("", selection: $settings.workDuration) {
+                                ForEach(workDurationOptions, id: \.self) { min in
+                                    Text("\(min) min").tag(min)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 90)
+                            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                            .cornerRadius(6)
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        }
+                        
+                        settingRow(label: "Break") {
+                            Picker("", selection: $settings.shortBreakDuration) {
+                                ForEach(breakDurationOptions, id: \.self) { min in
+                                    Text("\(min) min").tag(min)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 90)
+                            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                            .cornerRadius(6)
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        }
+                        
+                        settingRow(label: "Long Break") {
+                            Picker("", selection: $settings.longBreakDuration) {
+                                ForEach(longBreakDurationOptions, id: \.self) { min in
+                                    Text("\(min) min").tag(min)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 90)
+                            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                            .cornerRadius(6)
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        }
+                        
+                        settingRow(label: "Workflows") {
+                            Picker("", selection: $settings.workflowCount) {
+                                ForEach(workflowOptions, id: \.self) { count in
+                                    Text("\(count)").tag(count)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 60)
+                            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                            .cornerRadius(6)
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        }
+                    }
+                    
+                    // Appearance Section
+                    settingsSection(title: "Appearance") {
+                        settingRow(label: "Theme") {
+                            Picker("", selection: $settings.selectedTheme) {
+                                ForEach(Theme.allCases) { theme in
+                                    Text(theme.rawValue).tag(theme)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 100)
+                            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                            .cornerRadius(6)
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        }
+                        
+                        settingRow(label: "Font Size") {
+                            HStack(spacing: 4) {
+                                Text("(16-80)")
+                                    .font(.system(size: 9))
+                                    .foregroundColor(settings.selectedTheme.textColor.opacity(0.4))
+                                TextField("", text: $fontSizeText)
+                                    .textFieldStyle(.plain)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(settings.selectedTheme.textColor)
+                                    .frame(width: 40)
+                                    .multilineTextAlignment(.center)
+                                    .padding(4)
+                                    .background(settings.selectedTheme.textColor.opacity(0.1))
+                                    .cornerRadius(4)
+                                    .onAppear {
+                                        fontSizeText = String(Int(settings.timerFontSize))
+                                    }
+                                    .onChange(of: fontSizeText) { newValue in
+                                        if let size = Int(newValue), size >= 16, size <= 80 {
+                                            settings.timerFontSize = Double(size)
+                                        }
+                                    }
+                                Text("pt")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(settings.selectedTheme.textColor.opacity(0.6))
+                            }
+                        }
+                        
+                        settingRow(label: "Fullscreen Font") {
+                            HStack(spacing: 4) {
+                                Text("(80-400)")
+                                    .font(.system(size: 9))
+                                    .foregroundColor(settings.selectedTheme.textColor.opacity(0.4))
+                                TextField("", text: Binding(
+                                    get: { String(Int(settings.fullscreenFontSize)) },
+                                    set: { newValue in
+                                        if let size = Int(newValue), size >= 80, size <= 400 {
+                                            settings.fullscreenFontSize = Double(size)
+                                        }
+                                    }
+                                ))
+                                    .textFieldStyle(.plain)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(settings.selectedTheme.textColor)
+                                    .frame(width: 40)
+                                    .multilineTextAlignment(.center)
+                                    .padding(4)
+                                    .background(settings.selectedTheme.textColor.opacity(0.1))
+                                    .cornerRadius(4)
+                                Text("pt")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(settings.selectedTheme.textColor.opacity(0.6))
+                            }
+                        }
+                        
+                        settingRow(label: "Font Weight") {
+                            Picker("", selection: $settings.timerFontWeightRaw) {
+                                Text("Thin").tag("Thin")
+                                Text("Light").tag("Light")
+                                Text("Regular").tag("Regular")
+                                Text("Medium").tag("Medium")
+                                Text("DemiBold").tag("DemiBold")
+                                Text("Bold").tag("Bold")
+                            }
+                            .labelsHidden()
+                            .frame(width: 100)
+                            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                            .cornerRadius(6)
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        }
+                        
+                        toggleRow(label: "Show Progress Bar", isOn: $settings.showProgressBar)
+                        toggleRow(label: "Timer Controls", isOn: $settings.showTimerControls)
+                        toggleRow(label: "Menu Bar Timer", isOn: $settings.showMenuBarTimer)
+                        toggleRow(label: "Enable Glow", isOn: $settings.enableGlow)
+                    }
+                    
+                    // Music Section
+                    settingsSection(title: "Music") {
+                        toggleRow(label: "Music Controls", isOn: $settings.showMusicControls)
+                        
+                        settingRow(label: "App") {
+                            Picker("", selection: $settings.musicApp) {
+                                Text("Spotify").tag("Spotify")
+                                Text("Apple Music").tag("Apple Music")
+                            }
+                            .labelsHidden()
+                            .frame(width: 110)
+                            .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
+                            .cornerRadius(6)
+                            .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.2), lineWidth: 1))
+                        }
+                    }
+                    
+                    // Sounds Section
+                    settingsSection(title: "Sounds") {
+                        toggleRow(label: "Pause Sound on Timer Pause", isOn: $settings.pauseSoundsOnTimerPause)
+                    }
+                    
+                    // Behavior Section
+                    settingsSection(title: "Behavior") {
+                        toggleRow(label: "Auto-Start Sessions", isOn: $settings.autoStartNextSession)
+                        toggleRow(label: "Always on Top", isOn: $settings.alwaysOnTop)
+                        toggleRow(label: "Click Actions", isOn: $settings.enableClickActions)
+                        
+                        settingRow(label: "Launch at Login") {
+                            Toggle("", isOn: Binding(
+                                get: { LaunchAtLoginManager.shared.isEnabled },
+                                set: { LaunchAtLoginManager.shared.setEnabled($0) }
+                            ))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                        }
+                    }
+                }
+                .padding(12)
+            }
         }
     }
     

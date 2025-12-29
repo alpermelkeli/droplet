@@ -28,10 +28,13 @@ class SettingsManager: ObservableObject {
     @AppStorage("workflowCount") var workflowCount: Int = 4
     @AppStorage("autoStartNextSession") var autoStartNextSession: Bool = true
     @AppStorage("alwaysOnTop") var alwaysOnTop: Bool = false
+    @AppStorage("enableClickActions") var enableClickActions: Bool = false
     @AppStorage("selectedTheme") var selectedThemeRaw: String = "Dark"
     
     // Visual settings
     @AppStorage("timerFontSize") var timerFontSize: Double = 42
+    @AppStorage("fullscreenFontSize") var fullscreenFontSize: Double = 120
+    @AppStorage("timerFontWeight") var timerFontWeightRaw: String = "Medium"
     @AppStorage("enableGlow") var enableGlow: Bool = false
     @AppStorage("showProgressBar") var showProgressBar: Bool = true
     @AppStorage("showTimerControls") var showTimerControls: Bool = false

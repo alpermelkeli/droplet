@@ -13,7 +13,7 @@ Built with Swift and SwiftUI.
 - 💊 **Mini-Floater Mode** - Tiny, pill-shaped window (100x36) for minimal distraction
 - ⏱️ **Menu Bar Timer** - Live countdown directly in your menu bar
 - 🎵 **Music Integration** - Control Spotify & Apple Music (Play/Pause, Next, Previous, Shuffle, Repeat) with Now Playing info
-- 🎨 **10 Beautiful Themes** - Dark, Light, Beige, Beige+, Navy, Navy+, Frog, Leaf, Blossom, Poppy
+- 🎨 **15 Beautiful Themes** - Dark, Noir, Light, Beige, Linen, Poppy, Blossom, Velvet, Plum, Navy, Royal, Teal, Frog, Leaf, Emerald
 - 🎧 **Ambient Sounds** - Forest, Train, Library, Cricket (seamless looping)
 - ✨ **Glow Effects** - Optional glowing timer and progress bar
 - 🔔 **Notifications** - Native macOS alerts when sessions end
@@ -21,7 +21,9 @@ Built with Swift and SwiftUI.
 - 🎶 **Custom Sounds** - Import your own MP3 files as focus sounds
 - �📌 **Menu Bar Only** - Lives in your menu bar, no dock icon
 - 🚀 **Launch at Login** - Start automatically with your Mac
-- ⚙️ **Customizable** - Adjust durations, workflows, font size
+- ⚙️ **Customizable** - Adjust durations, workflows, font size & weight
+- ⏭️ **Skip Break** - Jump back to work when you're in the zone
+- 🖥️ **Fullscreen Mode** - Focus with a distraction-free fullscreen timer
 
 ## Installation
 

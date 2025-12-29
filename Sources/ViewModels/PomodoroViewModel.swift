@@ -40,6 +40,26 @@ class PomodoroViewModel: ObservableObject {
         }
     }
     
+    /// Check if currently on a break (short or long)
+    var isOnBreak: Bool {
+        currentMode == .shortBreak || currentMode == .longBreak
+    }
+    
+    /// Skip the current break and immediately return to work mode
+    func skipBreak() {
+        guard isOnBreak else { return }
+        stopTimer()
+        currentMode = .work
+        resetToCurrentMode()
+        status = .idle
+        
+        // Send motivational notification
+        notifications.sendCustomNotification(
+            title: "Break Skipped 💪",
+            body: "Let's get back to work! Stay focused."
+        )
+    }
+    
     var progressRatio: Double {
         let total = totalSecondsForCurrentMode
         guard total > 0 else { return 0 }

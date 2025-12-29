@@ -193,6 +193,11 @@ class SettingsMenu: NSObject {
         
         menu.addItem(NSMenuItem.separator())
         
+        // Toggle Fullscreen
+        let fullscreen = NSMenuItem(title: "Toggle Fullscreen", action: #selector(toggleFullscreen), keyEquivalent: "")
+        fullscreen.target = self
+        menu.addItem(fullscreen)
+        
         // Check for Updates
         let updates = NSMenuItem(title: "Check for Updates", action: #selector(checkForUpdates), keyEquivalent: "")
         updates.target = self
@@ -228,6 +233,11 @@ class SettingsMenu: NSObject {
     @objc func setWorkflowCount(_ sender: NSMenuItem) { settings.workflowCount = sender.tag }
     
     @objc func endSession() { viewModel.endCurrentSession() }
+    
+    @objc func toggleFullscreen() {
+        guard let window = SettingsManager.mainWindow else { return }
+        window.toggleFullScreen(nil)
+    }
     
     @objc func toggleMiniFloater() { settings.miniFloaterMode.toggle() }
     

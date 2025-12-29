@@ -111,13 +111,13 @@ jobs:
           
           > **Note**: On first launch, right-click the app and select "Open" to bypass Gatekeeper.
           
-          ### What's New
-          - ✨ **Task Management**: Create tasks, track time per task, and view your focus history.
-          - 🎨 **Mini-Floater Mode**: Toggle a tiny, pill-shaped window (100x36) to keep an eye on time without distraction.
-          - 🎭 **New Themes**: Added **Leaf** (Deep Pine) and **Navy+** (Dark Navy/Beige).
-          - ⏱️ **Menu Bar Timer**: See the countdown directly in your macOS menu bar.
-          - ⚙️ **Enhanced Settings**: Unified, easier-to-use settings experience with improved customization.
-          - 🐛 **Bug Fixes**: Smoother animations, fixed progress bar scaling, and improved stability.
+          ### What's New in v1.1.8
+          - ⏭️ **Skip Break Button** - Quickly return to work mode during breaks
+          - 🖥️ **Fullscreen Mode** - Native macOS fullscreen with customizable font size (80-400pt)
+          - 🎨 **5 New Themes** - Velvet, Noir, Plum, Teal, and Emerald
+          - ⚙️ **Font Weight Selection** - Choose from Thin to Bold for your timer
+          - 🔧 **Menu Bar Timer Fix** - No more jittering during countdown (monospaced digits)
+          - 🎛️ **Quick Access Buttons** - Fullscreen & Settings buttons on the timer view
         files: droplet-installer.dmg
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

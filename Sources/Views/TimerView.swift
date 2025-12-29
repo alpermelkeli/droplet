@@ -6,6 +6,7 @@ struct TimerView: View {
     @ObservedObject var settings = SettingsManager.shared
     
     @State private var pulseAnimation = false
+    @State private var isFullscreen = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -38,6 +39,36 @@ struct TimerView: View {
                 case .settings:
                     SettingsView()
                 }
+                
+                // Top buttons (fullscreen left, settings right - only on timer view, not mini mode)
+                if settings.currentView == .timer && !settings.miniFloaterMode {
+                    VStack {
+                        HStack {
+                            // Fullscreen button (left)
+                            Button(action: {
+                                SettingsManager.mainWindow?.toggleFullScreen(nil)
+                            }) {
+                                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(settings.selectedTheme.textColor.opacity(0.3))
+                            }
+                            .buttonStyle(.plain)
+                            .padding(10)
+                            
+                            Spacer()
+                            
+                            // Settings button (right)
+                            Button(action: { settings.navigateTo(.settings) }) {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(settings.selectedTheme.textColor.opacity(0.3))
+                            }
+                            .buttonStyle(.plain)
+                            .padding(10)
+                        }
+                        Spacer()
+                    }
+                }
             }
         }
         .clipShape(settings.miniFloaterMode ? AnyShape(Capsule()) : AnyShape(RoundedRectangle(cornerRadius: 12)))
@@ -45,10 +76,10 @@ struct TimerView: View {
             minWidth: settings.miniFloaterMode ? 90 : 140,
             minHeight: settings.miniFloaterMode ? 32 : 100
         )
-        .gesture(settings.currentView == .timer ? 
+        .gesture(settings.currentView == .timer && settings.enableClickActions ? 
             TapGesture(count: 2).onEnded { viewModel.resetCurrentMode() } : nil
         )
-        .gesture(settings.currentView == .timer ?
+        .gesture(settings.currentView == .timer && settings.enableClickActions ?
             TapGesture(count: 1).onEnded {
                 if viewModel.status == .pulsing {
                     viewModel.continueToNextPhase()
@@ -64,6 +95,7 @@ struct TimerView: View {
         )
         .onAppear {
             startPulseAnimationIfNeeded()
+            checkFullscreenState()
         }
         .onChange(of: viewModel.status) { newStatus in
             if newStatus == .pulsing {
@@ -71,6 +103,40 @@ struct TimerView: View {
             } else {
                 pulseAnimation = false
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didEnterFullScreenNotification)) { _ in
+            isFullscreen = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didExitFullScreenNotification)) { _ in
+            isFullscreen = false
+        }
+    }
+    
+    private func checkFullscreenState() {
+        if let window = SettingsManager.mainWindow {
+            isFullscreen = window.styleMask.contains(.fullScreen)
+        }
+    }
+    
+    private var currentFontSize: Double {
+        isFullscreen ? settings.fullscreenFontSize : settings.timerFontSize
+    }
+    
+    /// Scale factor for UI elements in fullscreen (based on font size ratio)
+    private var fullscreenScale: CGFloat {
+        isFullscreen ? CGFloat(settings.fullscreenFontSize / settings.timerFontSize) : 1.0
+    }
+    
+    /// Convert font weight string to Font.Weight
+    private var currentFontWeight: Font.Weight {
+        switch settings.timerFontWeightRaw {
+        case "Thin": return .thin
+        case "Light": return .light
+        case "Regular": return .regular
+        case "Medium": return .medium
+        case "DemiBold": return .semibold
+        case "Bold": return .bold
+        default: return .medium
         }
     }
     
@@ -93,14 +159,14 @@ struct TimerView: View {
             if let activeTask = TaskManager.shared.activeTask {
                 Button(action: { settings.navigateTo(.taskList) }) {
                     Text(activeTask.name)
-                        .font(.system(size: taskNameFontSize(for: activeTask.name, width: geometry.size.width)))
+                        .font(.system(size: taskNameFontSize(for: activeTask.name, width: geometry.size.width) * fullscreenScale))
                         .fontWeight(.medium)
                         .foregroundColor(settings.selectedTheme.workAccent)
                         .lineLimit(1)
                         .truncationMode(.tail)
                 }
                 .buttonStyle(.plain)
-                .padding(.bottom, 4)
+                .padding(.bottom, isFullscreen ? 16 : 4)
             }
             
             // Timer display with optional control buttons
@@ -115,7 +181,7 @@ struct TimerView: View {
                         }
                     }) {
                         Image(systemName: viewModel.status == .running ? "pause.fill" : "play.fill")
-                            .font(.system(size: 12))
+                            .font(.system(size: 12 * fullscreenScale))
                             .foregroundColor(settings.selectedTheme.textColor.opacity(0.7))
                     }
                     .buttonStyle(.plain)
@@ -123,8 +189,8 @@ struct TimerView: View {
                 
                 // Timer text
                 Text(viewModel.formattedTime)
-                    .font(.custom("Avenir Next", size: settings.timerFontSize))
-                    .fontWeight(.medium)
+                    .font(.custom("Avenir Next", size: currentFontSize))
+                    .fontWeight(currentFontWeight)
                     .foregroundColor(settings.selectedTheme.textColor)
                     .monospacedDigit()
                     .opacity(viewModel.status == .pulsing ? (pulseAnimation ? 0.5 : 1.0) : 1.0)
@@ -142,7 +208,7 @@ struct TimerView: View {
                         viewModel.resetCurrentMode()
                     }) {
                         Image(systemName: "arrow.counterclockwise")
-                            .font(.system(size: 12))
+                            .font(.system(size: 12 * fullscreenScale))
                             .foregroundColor(settings.selectedTheme.textColor.opacity(0.7))
                     }
                     .buttonStyle(.plain)
@@ -174,22 +240,43 @@ struct TimerView: View {
             }
             
             // Workflow counter
-            HStack(spacing: 4) {
+            HStack(spacing: 4 * fullscreenScale) {
                 ForEach(0..<settings.workflowCount, id: \.self) { index in
                     let isHighlighted = viewModel.currentMode == .longBreak ||
                         (viewModel.currentMode == .work && index <= viewModel.completedWorkflows) ||
                         (viewModel.currentMode != .work && index < viewModel.completedWorkflows)
                     Circle()
                         .fill(isHighlighted ? viewModel.currentAccentColor : settings.selectedTheme.textColor.opacity(0.3))
-                        .frame(width: 6, height: 6)
+                        .frame(width: 6 * fullscreenScale, height: 6 * fullscreenScale)
                 }
             }
-            .padding(.top, 4)
+            .padding(.top, isFullscreen ? 16 : 4)
+            
+            // Skip Break button (only visible during breaks)
+            if viewModel.isOnBreak && geometry.size.height >= 120 {
+                Button(action: { viewModel.skipBreak() }) {
+                    HStack(spacing: 4 * fullscreenScale) {
+                        Image(systemName: "forward.end.fill")
+                            .font(.system(size: 9 * fullscreenScale))
+                        Text("Skip")
+                            .font(.system(size: 10 * fullscreenScale, weight: .medium))
+                    }
+                    .foregroundColor(settings.selectedTheme.breakAccent)
+                    .padding(.horizontal, 10 * fullscreenScale)
+                    .padding(.vertical, 4 * fullscreenScale)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6 * fullscreenScale)
+                            .fill(settings.selectedTheme.breakAccent.opacity(0.15))
+                    )
+                }
+                .buttonStyle(.plain)
+                .padding(.top, isFullscreen ? 16 : 4)
+            }
             
             // Music controls
             if settings.showMusicControls && geometry.size.height >= 140 && geometry.size.width >= 200 {
-                MusicControlsView()
-                    .padding(.top, 6)
+                MusicControlsView(isFullscreen: isFullscreen, scale: fullscreenScale)
+                    .padding(.top, isFullscreen ? 24 : 6)
                     .frame(maxWidth: geometry.size.width - 32)
             }
         }
@@ -476,12 +563,15 @@ struct MusicControlsView: View {
     @ObservedObject var musicManager = MusicManager.shared
     @ObservedObject var settings = SettingsManager.shared
     
+    var isFullscreen: Bool = false
+    var scale: CGFloat = 1.0
+    
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 8 * scale) {
             // Song info on the left (if available)
             if !musicManager.nowPlaying.displayText.isEmpty {
                 Text(musicManager.nowPlaying.displayText)
-                    .font(.system(size: 9))
+                    .font(.system(size: 9 * scale))
                     .foregroundColor(settings.selectedTheme.textColor.opacity(0.6))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -491,13 +581,13 @@ struct MusicControlsView: View {
             
             // Control buttons on the right
             if settings.showMusicControls {
-                HStack(spacing: 12) {
+                HStack(spacing: 12 * scale) {
                     // Shuffle Button
                     Button(action: {
                         musicManager.toggleShuffle()
                     }) {
                         Image(systemName: "shuffle")
-                            .font(.system(size: 10)) // Increased from 8
+                            .font(.system(size: 10 * scale))
                             .foregroundColor(musicManager.isShuffling ? settings.selectedTheme.workAccent : settings.selectedTheme.textColor.opacity(0.5))
                     }
                     .buttonStyle(.plain)
@@ -506,7 +596,7 @@ struct MusicControlsView: View {
                     // Previous
                     Button(action: { musicManager.previousTrack() }) {
                         Image(systemName: "backward.fill")
-                            .font(.system(size: 12)) // Increased from 10
+                            .font(.system(size: 12 * scale))
                             .foregroundColor(settings.selectedTheme.textColor.opacity(0.7))
                     }
                     .buttonStyle(.plain)
@@ -514,7 +604,7 @@ struct MusicControlsView: View {
                     // Play/Pause
                     Button(action: { musicManager.togglePlayPause() }) {
                         Image(systemName: musicManager.nowPlaying.isPlaying ? "pause.fill" : "play.fill")
-                            .font(.system(size: 14)) // Increased from 12
+                            .font(.system(size: 14 * scale))
                             .foregroundColor(settings.selectedTheme.textColor)
                     }
                     .buttonStyle(.plain)
@@ -522,7 +612,7 @@ struct MusicControlsView: View {
                     // Next
                     Button(action: { musicManager.nextTrack() }) {
                         Image(systemName: "forward.fill")
-                            .font(.system(size: 12)) // Increased from 10
+                            .font(.system(size: 12 * scale))
                             .foregroundColor(settings.selectedTheme.textColor.opacity(0.7))
                     }
                     .buttonStyle(.plain)
@@ -532,7 +622,7 @@ struct MusicControlsView: View {
                         musicManager.toggleRepeat()
                     }) {
                         Image(systemName: musicManager.repeatMode == .one ? "repeat.1" : "repeat")
-                            .font(.system(size: 10)) // Increased from 8
+                            .font(.system(size: 10 * scale))
                             .foregroundColor(musicManager.repeatMode != .off ? settings.selectedTheme.workAccent : settings.selectedTheme.textColor.opacity(0.5))
                     }
                     .buttonStyle(.plain)

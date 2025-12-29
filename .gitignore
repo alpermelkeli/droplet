@@ -7,8 +7,9 @@ droplet.app/
 droplet_rw.dmg
 droplet-installer.dmg
 
-# Xcode
+# Xcode (macOS app only - iOS project is tracked)
 *.xcodeproj/
+!DropletMobile/DropletMobile.xcodeproj/
 *.xcworkspace/
 xcuserdata/
 
